@@ -44,7 +44,7 @@ public class Enemy : Actor {
     public override void Die()
     {
         base.Die();
-        if (Random.value < 0.45f && itemDrops.Count > 0)
+        if (Random.value < 0.70f && itemDrops.Count > 0)
         {
             var newCreated = GameObject.Instantiate(itemDrops[Random.Range(0, itemDrops.Count)]);
             newCreated.transform.position = transform.position + Vector3.up * 0.45f;

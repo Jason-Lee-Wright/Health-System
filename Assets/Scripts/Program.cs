@@ -8,7 +8,8 @@ public class HealthSystem
     public string healthStatus;
     public int shield;
     public int lives;
-    
+
+    public bool preventRevive = false;
 
     // Optional XP system variables
     public int xp;
@@ -162,10 +163,14 @@ public class HealthSystem
         {
             health = 100;
         }
+        if (health < 0)
+            { health = 0; }
         if (shield > 100)
         {
             shield = 100;
         }
+        if (shield < 0)
+            { shield = 0; }
         if (level > 99)
         {
             level = 99;
@@ -174,5 +179,171 @@ public class HealthSystem
         {
             lives = 99;
         }
+    }
+
+    public static void RunAllUnitTests()
+    {
+        TestForNegativeNumbers();
+        TestTakeDamage_ShieldOnly();
+        TestTakeDamage_ShieldAndHealth();
+        TestTakeDamage_HealthOnly();
+        TestTakeDamage_HealthToZero();
+        TestTakeDamage_ShieldAndHealthToZero();
+        TestTakeDamage_NegativeDamage();
+
+        TestHeal_NormalHealing();
+        TestHeal_AtMaxHealth();
+        TestHeal_NegativeHealing();
+
+        TestRegenerateShield_Normal();
+        TestRegenerateShield_AtMax();
+        TestRegenerateShield_Negative();
+
+        TestRevive();
+        TestResetGame();
+
+        TestIncreaseXP_Normal();
+        TestIncreaseXP_LevelUpTo99();
+    }
+    public static void TestForNegativeNumbers()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(-10);
+
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+    }
+
+    public static void TestTakeDamage_ShieldOnly()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(30);
+        UnityEngine.Debug.Assert(healthSystem.shield == 70);
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+    }
+
+    public static void TestTakeDamage_ShieldAndHealth()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(130);
+        healthSystem.Heal(30); 
+        UnityEngine.Debug.Assert(healthSystem.shield == 0, $"Expected 0 shield, got {healthSystem.shield}");
+        UnityEngine.Debug.Assert(healthSystem.health == 70, $"Expected 70 health, got {healthSystem.health}");
+    }
+
+    public static void TestTakeDamage_HealthOnly()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.shield = 0;
+        healthSystem.lives = 100;
+        healthSystem.TakeDamage(50);
+        healthSystem.Heal(50);
+        UnityEngine.Debug.Assert(healthSystem.health == 50, $"Expected 50 health, got {healthSystem.health}");
+    }
+
+    public static void TestTakeDamage_HealthToZero()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.preventRevive = true; 
+        healthSystem.shield = 0; 
+        healthSystem.TakeDamage(200);
+        UnityEngine.Debug.Assert(healthSystem.health == 0, $"Expected 0 health, got {healthSystem.health}");
+        UnityEngine.Debug.Assert(healthSystem.lives == 3, $"Expected 3 lives, got {healthSystem.lives}"); 
+    }
+
+    public static void TestTakeDamage_ShieldAndHealthToZero()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.preventRevive = true;
+        healthSystem.TakeDamage(200);
+        UnityEngine.Debug.Assert(healthSystem.health == 0, $"Expected 0 health, got {healthSystem.health}");
+        UnityEngine.Debug.Assert(healthSystem.shield == 0, $"Expected 0 shield, got {healthSystem.shield}");
+    }
+
+    public static void TestTakeDamage_NegativeDamage()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(-10);
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100);
+    }
+
+    public static void TestHeal_NormalHealing()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.shield = 0;
+        healthSystem.TakeDamage(30); 
+        healthSystem.Heal(20 + 30);  
+        UnityEngine.Debug.Assert(healthSystem.health == 90, $"Expected 90 health, got {healthSystem.health}");
+    }
+
+    public static void TestHeal_AtMaxHealth()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.Heal(20);
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+    }
+
+    public static void TestHeal_NegativeHealing()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.Heal(-10);
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+    }
+
+    public static void TestRegenerateShield_Normal()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.RegenerateShield(20);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100); 
+    }
+
+    public static void TestRegenerateShield_AtMax()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.shield = 50;
+        healthSystem.RegenerateShield(100);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100);
+    }
+
+    public static void TestRegenerateShield_Negative()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.RegenerateShield(-10);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100);
+    }
+
+    public static void TestRevive()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(300); 
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100);
+        UnityEngine.Debug.Assert(healthSystem.lives == 2); 
+    }
+
+    public static void TestResetGame()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.TakeDamage(300);
+        healthSystem.ResetGame();
+        UnityEngine.Debug.Assert(healthSystem.health == 100);
+        UnityEngine.Debug.Assert(healthSystem.shield == 100);
+        UnityEngine.Debug.Assert(healthSystem.lives == 3);
+    }
+
+    public static void TestIncreaseXP_Normal()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.IncreaseXP(50);
+        UnityEngine.Debug.Assert(healthSystem.xp == 50);
+    }
+
+    public static void TestIncreaseXP_LevelUpTo99()
+    {
+        var healthSystem = new HealthSystem();
+        healthSystem.level = 97;
+        healthSystem.IncreaseXP(200);
+        UnityEngine.Debug.Assert(healthSystem.level == 99);
+        UnityEngine.Debug.Assert(healthSystem.xp == 0);
     }
 }
